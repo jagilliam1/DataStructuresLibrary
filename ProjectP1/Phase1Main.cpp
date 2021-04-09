@@ -3,6 +3,7 @@ using namespace std;
 #include "CDA.cpp"
 
 void foo(CDA<int> x){
+	cout << x.Length() << endl;
 	for (int i=0; i<x.Length()/2; i++)
 		x[i] = x[x.Length()/2+i];
 	// X => "5 4 3 2 0 5 5 4 3 2 0 5"	
