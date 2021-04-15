@@ -41,7 +41,7 @@ int main(){
 	cout << X.extractMin() << endl;
 	//Should output A
 	
-	X.printKey():
+	X.printKey();
 	//Should output
 	//B0
 	//B
