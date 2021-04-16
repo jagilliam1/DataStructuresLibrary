@@ -1,5 +1,11 @@
 template <typename keytype>
 
+struct Node{
+    keytype data;
+    int degree;
+    Node *child, *sibling, *parent;
+};
+
 class BHeap{
 
     private:

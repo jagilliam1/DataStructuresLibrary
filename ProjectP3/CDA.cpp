@@ -79,8 +79,7 @@ class CDA{
                 cout << "Out of bounds" << endl;
                 return OOB;
             }
-            if(!reversed) return array[(fIndex + i) % capacity];
-            return array[(fIndex - i + capacity) % capacity];
+            return array[(fIndex + i) % capacity];
         }
 
         void AddEnd(elmtype v){
