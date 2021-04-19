@@ -1,24 +1,24 @@
-template <typename keytype>
-
-/*
-    This Node implementation allows us to just keep track of our list in the Nodes itself. Instead of having to use an external class.
-    This is done by using the sibling pointer and setting it when we insert. This is also done by just using the child pointer
-    to be the leftmost child so that we can have access to our nodes at that level. 
-*/
-
-struct Node{
-    keytype key;
-    int degree;
-    Node *child; //pointer to left most child
-    Node *sibling; //pointer to right sibling in list
-    Node *parent; //pointer to parent
-};
+//template <typename keytype>
 
 template <typename keytype>
 
 class BHeap{
 
     private:
+
+    /*
+    This Node implementation allows us to just keep track of our list in the Nodes itself. Instead of having to use an external class.
+    This is done by using the sibling pointer and setting it when we insert. This is also done by just using the child pointer
+    to be the leftmost child so that we can have access to our nodes at that level. 
+    */
+
+    struct Node{
+        keytype key;
+        int degree;
+        Node *child; //pointer to left most child
+        Node *sibling; //pointer to right sibling in list
+        Node *parent; //pointer to parent
+    };
 
     //This points to the leftmost root node in the binomial tree list. Left most to keep consistent with our node implementation
     Node* head;
@@ -58,6 +58,42 @@ class BHeap{
         }
     }
 
+    //This function recursively copies a heap
+    Node* copyHeap(Node* srcNode, Node* p){
+        if(srcNode == nullptr) return nullptr;
+
+        //Temp will hold the new node for the new heap
+        Node* temp = new Node;
+        initNode(temp, srcNode->key, srcNode->degree);
+
+        //First recurse across to get each sibling in each level
+        temp->sibling = copyHeap(srcNode->sibling, p);
+        //Then go down a level to copy each nodes children
+        temp->child = copyHeap(srcNode->child, temp);
+        temp->parent = p;
+        return temp;
+    }
+
+    //finds the amount of nodes in the tree. O(lgn) time
+    int nodeCount(int sum){
+        Node* curr = head;
+
+        while(curr!= nullptr){
+            int n = curr->degree;
+            sum = sum + (2^n);
+            curr = curr->sibling;
+        }
+        return sum;
+    }
+
+    //This function recursivley prints out each tree in a preorder traversal
+    void printTree(Node* node){
+        if(node == nullptr) return;
+        cout << node->key << " ";
+        printTree(node->child);
+        printTree(node->sibling);
+    }
+
     public:
 
     //Default constructor
@@ -66,16 +102,39 @@ class BHeap{
     }
 
     //For this constructor the heap should be built using the array K containing s items of keytype. The heap should be constructed using repeated insertion.
-    BHeap(keytype k[], int s);
+    BHeap(keytype k[], int s){
+        //First we use the first item in k to use as our head.
+        head = new Node;
+        initNode(head, k[0], 0);
+
+        for(int i=1; i < s; i++){
+            insert(k[i]);
+        }
+    }
 
     //Copy Constructor
-    BHeap(const Heap &src);
+    BHeap(const BHeap &src){
+        //Copies heap starting at root node and then sets our Min in this tree
+        head = copyHeap(src.getHead(), nullptr);
+        findMin();
+    }
+        
 
     //Copy Assignment Operator
-    BHeap& operator=(const Heap &src);
+    BHeap& operator=(const BHeap &src){
+        //Copies heap starting at root node and then sets our Min in this tree
+        head = copyHeap(src.getHead(), nullptr);
+        findMin();
+        return *this;
+    }
 
     //Destructor
-    ~BHeap();
+    ~BHeap(){
+        int count = nodeCount(0);
+        for(int i = 0; i < count; i++){
+            extractMin();
+        }
+    }
 
     //Getter and setter functions for our head node
     Node* getHead(){
@@ -83,8 +142,9 @@ class BHeap{
     }
 
     //We need this because our insert function cannot access the head of the BHeap we create in it
-    Node* setHead(Node* head){
+    void setHead(Node* head){
         this->head = head;
+        return;
     }
 
     //Returns the minimum key in the heap without modifiying the heap
@@ -93,7 +153,69 @@ class BHeap{
     } 
 
     //Removes the minimum key in the heap and returns the key
-    keytype extractMin();
+    keytype extractMin(){
+        Node* curr = head;
+        Node* prevMin = nullptr;
+        Node* minP = nullptr;
+        Node* prev = nullptr;
+
+        keytype min = head->key;
+
+        //We are using this instead of the findMin function because we have to keep track of some extra things for extractMin
+        while(curr != nullptr){
+            if(curr->key <= min){
+                min = curr->key;
+                prevMin = prev;
+                minP = curr;
+            }
+            prev = curr;
+            curr = curr->sibling;
+        }
+
+        //logic for deleting the node pointed to by minP. Is based off what is left of node
+        //Case if min is in middle of root list
+        if(prevMin != nullptr && minP->sibling != nullptr){
+            prevMin->sibling = minP->sibling;
+        }
+        //Case if minP is far right of root list
+        else if(prevMin != nullptr && minP->sibling == nullptr){
+            prevMin->sibling = nullptr;
+        }
+        //Case if minP is head and has a right sibling
+        else if(prevMin == nullptr && minP->sibling != nullptr){
+            head = minP->sibling;
+        }
+        //Case if head node is the only tree in heap
+        else if(prevMin == nullptr && minP->sibling == nullptr){
+            head = nullptr;
+        }
+
+        //This goes and removes minP from all parent references. Merge will take care of resetting these pointers
+        Node* child = minP->child;
+        while(child != nullptr){
+            child->parent = nullptr;
+            child = child->sibling;
+        }
+
+        //Here we reverse the children of minP to keep in logical order for when we merge them into the new heap
+        Node* x = minP->child;
+        Node* pre = nullptr;
+        Node* sib = nullptr;
+        while(x != nullptr){
+            sib = x->sibling;
+            x->sibling = pre;
+            pre = x;
+            x = sib;
+        }
+        minP->child = pre;
+
+        //Here we create a new heap and set its head to be the new minP's child
+        BHeap h;
+        h.setHead(minP->child);//If we get segfaults its prob going to be in this merge
+        merge(h);
+
+        return minP->key;
+    }
 
     //Inserts the key k into the heap
     void insert(keytype k){
@@ -188,7 +310,7 @@ class BHeap{
                 }
                 else{
                     //If this is other way around we will lose our temp pointer so we have to update it to be the new head of our heap
-                    if(p == nullptr) temp = n;
+                    if(p == nullptr) tempNode = n;
                     //Otherwise we just make sure our sibling pointers dont get lost
                     else p->sibling = n;
                 }
@@ -208,16 +330,12 @@ class BHeap{
     //binomial tree, print the size of tree first and then use a modified preorder traversal of the tree.
     void printKey(){
         Node* curr = head;
-
-        //Top while loops through each root node in the root list
         while(curr != nullptr){
             cout << "B" << curr->degree << endl;
-            cout << curr->key << " ";
-
-            //This will do the preorder traversal of each node in the root list
-            
+            printTree(curr);
+            cout << endl;
+            curr = curr->sibling;
         }
-
         return;
     }
 
