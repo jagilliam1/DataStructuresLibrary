@@ -32,6 +32,7 @@ int main(){
 	BHeap<string> X(A,10), Y;
 
 	X.printKey();
+	//cout << "end of print" << endl;
 	//Should output 
 	//B1
 	//J K
@@ -42,7 +43,9 @@ int main(){
 	cout << X.extractMin() << endl;
 	//Should output A
 	
+	//cout << "start of next print" << endl;
 	X.printKey();
+	//cout << "end of print" << endl;
 	//Should output
 	//B0
 	//B

@@ -20,10 +20,6 @@ class BHeap{
         Node *parent; //pointer to parent
     };
 
-    //This points to the leftmost root node in the binomial tree list. Left most to keep consistent with our node implementation
-    Node* head;
-    Node* minNode;
-
     //This initializes node with default values. Cleans up code down the line
     void initNode(Node* node, keytype key, int degree){
         node->key = key;
@@ -46,11 +42,16 @@ class BHeap{
 
     //This finds the node with the min data in the root list and sets our minNode pointer to it. O(lgn) time
     void findMin(){
+        if(head == nullptr){
+            minNode = nullptr;
+            return;
+        }
+
         keytype min = head->key;
         Node* curr = head;
 
         while(curr != nullptr){
-            if(curr->key < min){
+            if(curr->key <= min){
                 min = curr->key;
                 minNode =  curr;
             }
@@ -94,20 +95,34 @@ class BHeap{
         printTree(node->sibling);
     }
 
+    void destroyTree(Node* node){
+        if(node == nullptr) return;
+        destroyTree(node->child);
+        Node* temp = node;
+        while(temp != nullptr){
+            temp = temp->sibling;
+            delete node;
+        }
+    }
+
     public:
+
+    //This points to the leftmost root node in the binomial tree list. Left most to keep consistent with our node implementation
+    //These are down here in public because the copy constructor needs to access the src.head
+    Node* head;
+    Node* minNode;
+    keytype emptyKey;
 
     //Default constructor
     BHeap(){
         head = nullptr;
+        minNode = nullptr;
     }
 
     //For this constructor the heap should be built using the array K containing s items of keytype. The heap should be constructed using repeated insertion.
     BHeap(keytype k[], int s){
-        //First we use the first item in k to use as our head.
-        head = new Node;
-        initNode(head, k[0], 0);
-
-        for(int i=1; i < s; i++){
+        head = nullptr;
+        for(int i=0; i < s; i++){
             insert(k[i]);
         }
     }
@@ -115,7 +130,7 @@ class BHeap{
     //Copy Constructor
     BHeap(const BHeap &src){
         //Copies heap starting at root node and then sets our Min in this tree
-        head = copyHeap(src.getHead(), nullptr);
+        head = copyHeap(src.head, nullptr);
         findMin();
     }
         
@@ -123,16 +138,19 @@ class BHeap{
     //Copy Assignment Operator
     BHeap& operator=(const BHeap &src){
         //Copies heap starting at root node and then sets our Min in this tree
-        head = copyHeap(src.getHead(), nullptr);
+        head = copyHeap(src.head, nullptr);
         findMin();
         return *this;
     }
 
     //Destructor
     ~BHeap(){
-        int count = nodeCount(0);
-        for(int i = 0; i < count; i++){
-            extractMin();
+        Node* curr1 = head;
+        Node* curr2 = curr1;
+        while(curr2 != nullptr){
+            curr2 = curr2->sibling;
+            destroyTree(curr1);
+            curr1 = curr2;
         }
     }
 
@@ -154,6 +172,10 @@ class BHeap{
 
     //Removes the minimum key in the heap and returns the key
     keytype extractMin(){
+        if(head == nullptr){
+            return emptyKey;
+        }
+
         Node* curr = head;
         Node* prevMin = nullptr;
         Node* minP = nullptr;
@@ -190,6 +212,12 @@ class BHeap{
             head = nullptr;
         }
 
+        //This checks if the minNode is the head of the list and has no children. Just return
+        if(minP->child == nullptr){
+            if(head != nullptr) findMin();//This is an edge case where findMin would not get called in merge so we have to call here
+            return minP->key;
+        }
+
         //This goes and removes minP from all parent references. Merge will take care of resetting these pointers
         Node* child = minP->child;
         while(child != nullptr){
@@ -198,20 +226,27 @@ class BHeap{
         }
 
         //Here we reverse the children of minP to keep in logical order for when we merge them into the new heap
-        Node* x = minP->child;
+        Node* current = minP->child;
         Node* pre = nullptr;
         Node* sib = nullptr;
-        while(x != nullptr){
-            sib = x->sibling;
-            x->sibling = pre;
-            pre = x;
-            x = sib;
+        while(current != nullptr){
+            sib = current->sibling;
+            current->sibling = pre;
+            pre = current;
+            current = sib;
         }
-        minP->child = pre;
+        minP->child = nullptr;
+
+        //This is another edge case to where minP was the only node in root list
+        if(head == nullptr){
+            head = pre;
+            findMin();//This is an edge case where findMin would not get called in merge so we have to call here
+            return minP->key;
+        }
 
         //Here we create a new heap and set its head to be the new minP's child
         BHeap h;
-        h.setHead(minP->child);//If we get segfaults its prob going to be in this merge
+        h.setHead(pre);
         merge(h);
 
         return minP->key;
@@ -219,6 +254,15 @@ class BHeap{
 
     //Inserts the key k into the heap
     void insert(keytype k){
+        //Checks if the heap is empty
+        if(head == nullptr){
+            Node* temp = new Node;
+            initNode(temp, k, 0);
+            head = temp;
+            minNode = temp;
+            return;
+        }
+
         //Create new BHeap for our insert node
         BHeap h;
         //Create new node with default values and degree 0. Then set our new BHeap head to this node and merge with current BHeap
@@ -280,7 +324,7 @@ class BHeap{
         }
 
         if(curr2 != nullptr){
-            while(curr1 != nullptr){
+            while(curr2 != nullptr){
                 curr3->sibling = curr2;
                 curr2 = curr2->sibling;
                 curr3 = curr3->sibling;
@@ -289,20 +333,21 @@ class BHeap{
 
         //The rest of the algorithm handles our trees with the same degree
         curr3 = tempNode;
+        head = tempNode;
         Node* p = nullptr;
         Node* n = curr3->sibling;
 
         while(n != nullptr){
             //If two siblings dont have the same degree or there are 3 consecutive same degree roots we move on to the next sibling because that first one
             //will just be the root with that degree. It is impossible for there to be more than 3 of the same kind
-            if(curr3->degree != n->degree || (n->sibling != nullptr && curr3->degree == n->sibling->degree)){
+            if((curr3->degree != n->degree) || (n->sibling != nullptr && curr3->degree == n->sibling->degree)){
                 p = curr3;
                 curr3 = n;
             }
 
             //Otherwise we repeatdly merge the binomial trees with matching degrees. Uses our linkBTree method
             else{
-                //This keeps heap order correct by choosing smallest key to be the one not in root list
+                //This keeps heap order correct by choosing smallest key to be the one in root list
                 if(curr3->key <= n->key){
                     curr3->sibling = n->sibling;
                     //This sets our curr3 to be the parent of n because curr3 key is smaller
@@ -313,10 +358,11 @@ class BHeap{
                     if(p == nullptr) tempNode = n;
                     //Otherwise we just make sure our sibling pointers dont get lost
                     else p->sibling = n;
+
+                    //This sets our n to be the parent of curr3 and curr3 gets "eaten" by n so we update it
+                    linkBTrees(n, curr3);
+                    curr3 = n;
                 }
-                //This sets our n to be the parent of curr3 and curr3 gets "eaten" by n so we update it
-                linkBTrees(n, curr3);
-                curr3 = n;
             }
             n = curr3->sibling;
         }
@@ -332,8 +378,10 @@ class BHeap{
         Node* curr = head;
         while(curr != nullptr){
             cout << "B" << curr->degree << endl;
-            printTree(curr);
-            cout << endl;
+            cout << curr->key << " ";
+            printTree(curr->child);
+            if(curr->sibling != nullptr) cout << endl << endl;
+            else cout << endl;
             curr = curr->sibling;
         }
         return;

@@ -4,6 +4,9 @@ using namespace std;
 //#include "Heap.cpp"
 #include "BHeap.cpp"
 
+void foo(BHeap<string> H){
+	H.printKey();
+}
 
 int main(){
 	string A[10] = {"A","B","C","D","E","F","H","I","J","K"};
@@ -28,56 +31,33 @@ int main(){
 	T1.printKey();
 	//Should output 2 3 5 4 8 9 6 10 7
 	*/
-	
-	BHeap<string> X(A,10), Y;
 
-	//X.printKey();
-	//Should output 
-	//B1
-	//J K
-	//
-	//B3
-	//A E H I F C D B
+	int X[10000];
+	for(int i=0; i < 10000; i++){
+		X[i] = i;
+	}
 
-	//cout << X.extractMin() << endl;
-	//Should output A
-	
-	//X.printKey();
-	//Should output
-	//B0
-	//B
-	//
-	//B3
-	//C E H I F J K D
-	
-	//Y.insert("M"); 
-	//Y.insert("O");
-	//Y.insert("G");
-	//Y.insert("N");
-	//Y.insert("L");
-	
-	//Y.printKey();
-	//Should output
-	//B0
-	//L
-	//
-	//B2
-	//G M O N
-	
-	//Y.merge(X);
-	//cout << Y.peekKey() << endl;
-	//Should output B
-	
-	//Y.printKey();
-	//Should output
-	//B1
-	//B L
-	//
-	//B2
-	//G M O N
-	//
-	//B3
-	//C E H I F J K D
+	BHeap<int> Y(X,10000);
+	//cout << Y.extractMin() << endl;
+	//cout << Y.extractMin() << endl;
+	//cout << Y.extractMin() << endl;
+
+	for(int i=0; i < 10000; i++){
+		//cout << Y.extractMin() << endl;
+	}
+
+	//lets also try copy constructor and also change destructor
+
+	BHeap<string> T(A,10), H;
+
+	foo(T);
+
+	//H = T;
+	//T.extractMin();
+	//H.insert("L");
+
+	//T.printKey();
+	//H.printKey();
 			
 	return 0;
 }
