@@ -1,12 +1,12 @@
 #include "CDA.cpp"
 template <typename keytype>
-//Might need to move the include down here and change all the elmtype in CDA into keytype 
 
 class Heap{
 
     private:
 
-    CDA<keytype> heap;//I think this needs to be a pointer
+    CDA<keytype> heap;
+    keytype trashvalue;
 
     //Gets the parent of current node
     int parent(int child){
@@ -100,16 +100,16 @@ class Heap{
 
     //Returns the minimum key in the heap without modifiying the heap
     keytype peekKey(){
-        if(heap.Length() == 0) return NULL;
+        if(heap.Length() == 0) return trashvalue;
         return heap[0];
     } 
 
     //Removes the minimum key in the heap and returns the key
     keytype extractMin(){
-        if(heap.Length() == 0) return NULL;
+        if(heap.Length() == 0) return trashvalue;
         keytype k = heap[0];
 
-        heap[0] = heap[heap.Length() - 1];// I think this is incorrect. Need to replace with the smallest child value
+        heap[0] = heap[heap.Length() - 1];
         heap.DelEnd();
         heapifyDown(0);
         return k;

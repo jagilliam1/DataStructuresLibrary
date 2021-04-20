@@ -75,18 +75,6 @@ class BHeap{
         return temp;
     }
 
-    //finds the amount of nodes in the tree. O(lgn) time
-    int nodeCount(int sum){
-        Node* curr = head;
-
-        while(curr!= nullptr){
-            int n = curr->degree;
-            sum = sum + (2^n);
-            curr = curr->sibling;
-        }
-        return sum;
-    }
-
     //This function recursivley prints out each tree in a preorder traversal
     void printTree(Node* node){
         if(node == nullptr) return;
@@ -95,14 +83,12 @@ class BHeap{
         printTree(node->sibling);
     }
 
+    //Destructor helper function
     void destroyTree(Node* node){
         if(node == nullptr) return;
         destroyTree(node->child);
-        Node* temp = node;
-        while(temp != nullptr){
-            temp = temp->sibling;
-            delete node;
-        }
+        destroyTree(node->sibling);
+        delete node;
     }
 
     public:
@@ -145,13 +131,7 @@ class BHeap{
 
     //Destructor
     ~BHeap(){
-        Node* curr1 = head;
-        Node* curr2 = curr1;
-        while(curr2 != nullptr){
-            curr2 = curr2->sibling;
-            destroyTree(curr1);
-            curr1 = curr2;
-        }
+        //destroyTree(head);
     }
 
     //Getter and setter functions for our head node
@@ -163,6 +143,10 @@ class BHeap{
     void setHead(Node* head){
         this->head = head;
         return;
+    }
+
+    keytype getHeadKey(){
+        return head->key;
     }
 
     //Returns the minimum key in the heap without modifiying the heap
