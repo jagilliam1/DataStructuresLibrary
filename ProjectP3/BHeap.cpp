@@ -1,5 +1,3 @@
-//template <typename keytype>
-
 template <typename keytype>
 
 class BHeap{
@@ -145,6 +143,7 @@ class BHeap{
         return;
     }
 
+    //Debug helper function
     keytype getHeadKey(){
         return head->key;
     }
@@ -152,7 +151,7 @@ class BHeap{
     //Returns the minimum key in the heap without modifiying the heap
     keytype peekKey(){
         return minNode->key;
-    } 
+    }
 
     //Removes the minimum key in the heap and returns the key
     keytype extractMin(){
@@ -265,10 +264,9 @@ class BHeap{
         Node* curr3 = nullptr;
         Node* tempNode = nullptr;
 
-        /*
-        *  This goes and compares the heads of the two nodes and decides which one is larger so we know where to start our in order merge
-        *   It stores which is the smallest degree node into curr3 which is then stored in temp
-        */
+        
+        //This goes and compares the heads of the two nodes and decides which one is larger so we know where to start our in order merge
+        //It stores which is the smallest degree node into curr3 which is then stored in temp
         if(curr1->degree <= curr2->degree){
             curr3 = curr1;
             curr1 = curr1->sibling;
