@@ -1,3 +1,6 @@
+#ifndef __CDA_CPP__
+#define __CDA_CPP__
+
 #include <cstdlib>
 template <typename elmtype>
 
@@ -128,3 +131,5 @@ class CDA{
             array = new elmtype[capacity];
         }
 };
+
+#endif
