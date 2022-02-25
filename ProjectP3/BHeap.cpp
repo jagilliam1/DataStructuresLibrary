@@ -113,7 +113,7 @@ class BHeap{
 
     //Copy Constructor
     BHeap(const BHeap &src){
-        //Copies heap starting at root node and then sets our Min in this tree
+        //Copies heap starting at root node and then sets our minNode in this tree
         head = copyHeap(src.head, nullptr);
         findMin();
     }
@@ -121,7 +121,7 @@ class BHeap{
 
     //Copy Assignment Operator
     BHeap& operator=(const BHeap &src){
-        //Copies heap starting at root node and then sets our Min in this tree
+        //Copies heap starting at root node and then sets our minNode in this tree
         head = copyHeap(src.head, nullptr);
         findMin();
         return *this;

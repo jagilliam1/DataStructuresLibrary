@@ -87,7 +87,7 @@ class RBTree{
         if(n->left != TNULL){
             Node* node = n->left;
 
-            //Corrects the weights will finding the pred
+            //Corrects the weights while finding the pred
             while(node->right != TNULL){
                 node->weight--;
                 node = node->right;
@@ -97,6 +97,7 @@ class RBTree{
             return node;
         } 
 
+        //This finds the last node that we took a right turn to get to and returns that as pred
         Node* p = n->parent;
         while(p!=TNULL && n==p->left){
             n=p;
@@ -220,8 +221,9 @@ class RBTree{
         root->color = 'b';
     }
 
-    //fix violation function for delete
+    //Fix violation function for delete
     void deleteFixUp(Node* x){
+        //Sibling of x
         Node* w;
 
         while(x != root && x->color == 'b'){
@@ -373,11 +375,14 @@ class RBTree{
     int rankHelper(keytype k, Node* node){
         int r = 1;
         while(node != TNULL && node != nullptr){
+            //We dont count our rank if we are less than curent nodes key
             if(k < node->key) node = node->left;
+            //Here we count our rank because our node is larger than all the nodes to the left of it
             else if(k > node->key){
                 r += 1 + node->left->weight;
                 node = node->right;
             }
+            //Case if this is the node
             else{
                 return r + node->left->weight;
             }
@@ -386,7 +391,8 @@ class RBTree{
     }
 
     keytype selectHelper(int i, Node* x){
-        if(i <= root->weight){//Checks to make sure we arnt trying to look outside the tree
+        //Checks to make sure we arnt trying to look outside the tree
+        if(i <= root->weight){
             int r = x->left->weight + 1;
             if(i == r) return x->key; //The rank given is the x
             else if(i < r) return selectHelper(i, x->left); //rank is to the left of x
@@ -457,7 +463,7 @@ class RBTree{
     keytype* successor(keytype k){
         Node* p = nullptr;
         Node* n = root;
-        bool leftTaken = false;
+        bool leftTaken = false;//Used for edge case if node we found is the absolute maximum value in the tree
 
         if(root == TNULL || root == nullptr) return nullptr;
 
@@ -474,7 +480,7 @@ class RBTree{
         //This checks if the node we found is the maximum value in the tree
         if(n->left == TNULL && n->right == TNULL && leftTaken == false) return nullptr;
 
-        //once we find node check if it has right subtree. If not we already have last left edge stored in p from while loop above
+        //Once we find node check if it has right subtree. If not we already have last left edge stored in p from while loop above
         if(n && n->right != TNULL) p = findMin(n->right);
         return &p->key;
     }
@@ -482,7 +488,7 @@ class RBTree{
     keytype* predecessor(keytype k){
         Node* p = nullptr;
         Node* n = root;
-        bool rightTaken = false;
+        bool rightTaken = false;//Used for edge case if node we found is the absolute minimum value in the tree
 
         if(root == TNULL || root == nullptr) return nullptr;
 
@@ -499,7 +505,7 @@ class RBTree{
         //This checks if the node we found is the minimum value in the tree
         if(n->left == TNULL && n->right == TNULL && rightTaken == false) return nullptr;
 
-        //once we find node check if it has left subtree. If not we already have last right edge stored in p from while loop above
+        //Once we find node check if it has left subtree. If not we already have last right edge stored in p from while loop above
         if(n && n->left != TNULL) p = findMax(n->left);
         return &p->key;
     }
@@ -529,11 +535,15 @@ class RBTree{
             }
         }
 
+        //Below handles updating our pointers once we have found where to insert our node
+
         z->parent = y;
+        //Checks if node we insert is the root node
         if(y==nullptr){
             this->root = z;
         }
         
+        //Assigns new node to either be left or right child of parent depending on if its less than or greater than
         else if(z->key < y->key) {
             y->left = z;
         }
@@ -542,11 +552,13 @@ class RBTree{
             y->right = z;
         }
 
+        //Colors root black
         if(z->parent == nullptr){
             z->color = 'b';
             return;
         }
 
+        //Edge case. If this is case we don't need to call fixup
         if(z->parent->parent == nullptr) return;
 
         //Fixup Tree
@@ -554,13 +566,14 @@ class RBTree{
     }
 
     int remove(keytype k){
+        //Check if node to remove exist. O(lgn)
         bool check = checkNode(k);
         if(check == false) return 0;
         
-        Node* z = findNode(root, k);
-        Node* y = z;
-        Node* x;
-        char yOriginal = y->color;
+        Node* z = findNode(root, k);//Node to be removed from the tree. O(lgn)
+        Node* y = z;//This is either the node to remove from the tree or node to move around the tree. It depends on which case
+        Node* x;//Node to be moved into y's position in the tree
+        char yOriginal = y->color;//We store this because y can be removed around thus the color could change
 
         //Handle all the node weights here
         Node* t = z;
@@ -584,7 +597,7 @@ class RBTree{
         //Case if the node has two children
         else{
             //State is swapped
-            y = deletePredHelper(z);
+            y = deletePredHelper(z);//If this case happens y will now be set as the pred and will move into z's positon in the tree
             yOriginal = y->color;
             x = y->left;
 
@@ -603,6 +616,7 @@ class RBTree{
         }
 
         delete z;
+        //We call this because if y is black by moving it we could have caused some Red-Black violations in the tree
         if(yOriginal == 'b'){
             deleteFixUp(x);
         }

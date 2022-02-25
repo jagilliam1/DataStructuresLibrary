@@ -70,9 +70,7 @@ class Heap{
         //Fills our CDA with the given array in O(n) time
         for(int i = 0; i < s; i++){
             heap.AddEnd(k[i]);
-            //cout << heap[i] << " ";
         }
-        //cout << endl;
 
         //This then heapifys our given unordered heap. This is also O(n)
         for(int i = (heap.Length()/2) - 1; i >= 0; i--){
@@ -109,7 +107,7 @@ class Heap{
         if(heap.Length() == 0) return trashvalue;
         keytype k = heap[0];
 
-        heap[0] = heap[heap.Length() - 1];
+        heap[0] = heap[heap.Length() - 1];//Sets root to be the last key in heap. heapifyDown will take care of the order
         heap.DelEnd();
         heapifyDown(0);
         return k;
@@ -118,7 +116,7 @@ class Heap{
     //Inserts the key k into the heap
     void insert(keytype k){
         heap.AddEnd(k);
-        heapifyUp(heap.Length()-1);
+        heapifyUp(heap.Length() - 1);
     }
 
     //Writes the keys stored in the array, starting at the root
